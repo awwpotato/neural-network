@@ -1,0 +1,41 @@
+use crate::neuron::Neuron;
+
+pub type Layer = Vec<Neuron>;
+
+#[derive(Debug, Clone)]
+pub struct Network {
+    inputs: usize,
+    output_layer: Layer,
+    hidden_layers: Vec<Layer>,
+}
+
+impl Network {
+    pub fn new(
+        inputs: usize,
+        num_hidden_layers: usize,
+        hidden_layer_width: usize,
+        output_neurons: usize,
+    ) -> Self {
+        Self {
+            inputs,
+            output_layer: (0..output_neurons)
+                .map(|_| Neuron::new(hidden_layer_width))
+                .collect(),
+            hidden_layers: (0..num_hidden_layers)
+                .map(|_| {
+                    (0..hidden_layer_width)
+                        .map(|i| Neuron::new(if i == 0 { inputs } else { hidden_layer_width }))
+                        .collect()
+                })
+                .collect(),
+        }
+    }
+
+    pub fn train(&mut self) {
+        todo!()
+    }
+
+    pub fn run(&mut self) -> &[f64] {
+        todo!()
+    }
+}
