@@ -48,7 +48,7 @@ impl Network {
     pub fn train(&mut self, data: Vec<Series>) {
         let _ = data.par_iter().map(|series| {
             let outputs = self.internal_run(&series.data);
-            (series.answer, self.outputs_to_output(outputs), outputs)
+            (&series.answer, self.outputs_to_output(outputs), outputs)
         });
     }
 
