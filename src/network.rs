@@ -17,7 +17,7 @@ impl Network {
         num_hidden_layers: usize,
         hidden_layer_width: usize,
         output_neurons: usize,
-        output_names: Box<[impl ToString]>,
+        output_names: &[impl ToString],
     ) -> Self {
         Self {
             inputs,
