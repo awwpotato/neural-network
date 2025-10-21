@@ -45,7 +45,7 @@ impl Network {
         &self.output_names[index]
     }
 
-    pub fn train(&mut self, data: Vec<Series>) {
+    pub fn train(&mut self, data: &[Series]) {
         let _ = data.par_iter().map(|series| {
             let outputs = self.internal_run(&series.data);
             (&series.answer, self.outputs_to_output(outputs), outputs)
