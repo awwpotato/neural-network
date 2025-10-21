@@ -42,13 +42,22 @@ impl Network {
         });
     }
 
-    pub fn run(&self, inputs: &[f64]) -> (&str, &[f64]) {
+    pub fn run(&self, inputs: &[f64]) -> (&str, Vec<f64>) {
         let hidden_layer_outputs: Vec<f64> = self
             .hidden_layers
             .iter()
             .fold(inputs.to_vec(), |inputs, layer| {
                 layer.iter().map(|neuron| neuron.apply(&inputs)).collect()
             });
-        todo!()
+
+        let outputs = &mut self
+            .output_layer
+            .iter()
+            .map(|neuron| neuron.apply(&hidden_layer_outputs));
+
+        let max = outputs.max_by(|x, y| x.total_cmp(y)).unwrap();
+        let index = outputs.position(|i| i == max).unwrap();
+
+        (&self.output_names[index], outputs.collect())
     }
 }
