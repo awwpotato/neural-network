@@ -9,7 +9,7 @@ pub fn test_xor() {
         Series::new([1.0, 1.0], "0"),
     ];
 
-    let mut network = Network::new(2, 1, 4, 2, ["0".into(), "1".into()]);
+    let mut network = Network::new(2, 1, 4, 2, ["0", "1"]);
 
     network.train(training_data);
 

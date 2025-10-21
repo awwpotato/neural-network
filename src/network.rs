@@ -17,11 +17,11 @@ impl Network {
         num_hidden_layers: usize,
         hidden_layer_width: usize,
         output_neurons: usize,
-        output_names: impl Into<Box<[String]>>,
+        output_names: Box<[impl ToString]>,
     ) -> Self {
         Self {
             inputs,
-            output_names: output_names.into(),
+            output_names: output_names.iter().map(|s| s.to_string()).collect(),
             output_layer: (0..output_neurons)
                 .map(|_| Neuron::new(hidden_layer_width))
                 .collect(),
