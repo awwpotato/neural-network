@@ -1,4 +1,5 @@
-use crate::neuron::Neuron;
+use crate::{neuron::Neuron, series::Series};
+use rayon::prelude::*;
 
 pub type Layer = Vec<Neuron>;
 
@@ -6,7 +7,8 @@ pub type Layer = Vec<Neuron>;
 pub struct Network {
     inputs: usize,
     output_layer: Layer,
-    hidden_layers: Vec<Layer>,
+    output_names: Box<[String]>,
+    hidden_layers: Box<[Layer]>,
 }
 
 impl Network {
@@ -15,9 +17,11 @@ impl Network {
         num_hidden_layers: usize,
         hidden_layer_width: usize,
         output_neurons: usize,
+        output_names: impl Into<Box<[String]>>,
     ) -> Self {
         Self {
             inputs,
+            output_names: output_names.into(),
             output_layer: (0..output_neurons)
                 .map(|_| Neuron::new(hidden_layer_width))
                 .collect(),
@@ -31,11 +35,24 @@ impl Network {
         }
     }
 
-    pub fn train(&mut self) {
+    fn internal_run(&self, inputs: &[f64]) -> &[f64] {
         todo!()
     }
 
-    pub fn run(&mut self) -> &[f64] {
-        todo!()
+    fn outputs_to_output(&self, outputs: &[f64]) -> &str {
+        let max = outputs.iter().max_by(|x, y| x.total_cmp(y)).unwrap();
+        let index = outputs.iter().position(|i| i == max).unwrap();
+        &self.output_names[index]
+    }
+
+    pub fn train(&mut self, data: Vec<Series>) {
+        let _ = data.par_iter().map(|series| {
+            let outputs = self.internal_run(&series.data);
+            (series.answer, self.outputs_to_output(outputs), outputs)
+        });
+    }
+
+    pub fn run(&self, inputs: &[f64]) -> &str {
+        self.outputs_to_output(self.internal_run(inputs))
     }
 }
