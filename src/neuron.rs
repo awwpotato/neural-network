@@ -16,7 +16,7 @@ impl Neuron {
         }
     }
 
-    pub fn apply(self, inputs: &[f64]) -> f64 {
+    pub fn apply(&self, inputs: &[f64]) -> f64 {
         inputs
             .iter()
             .zip(self.weights.iter())

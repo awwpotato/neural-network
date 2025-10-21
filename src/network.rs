@@ -35,24 +35,20 @@ impl Network {
         }
     }
 
-    fn internal_run(&self, inputs: &[f64]) -> &[f64] {
-        todo!()
-    }
-
-    fn outputs_to_output(&self, outputs: &[f64]) -> &str {
-        let max = outputs.iter().max_by(|x, y| x.total_cmp(y)).unwrap();
-        let index = outputs.iter().position(|i| i == max).unwrap();
-        &self.output_names[index]
-    }
-
     pub fn train(&mut self, data: &[Series]) {
         let _ = data.par_iter().map(|series| {
-            let outputs = self.internal_run(&series.data);
-            (&series.answer, self.outputs_to_output(outputs), outputs)
+            let (pred, outputs) = self.run(&series.data);
+            (&series.answer, pred, outputs)
         });
     }
 
-    pub fn run(&self, inputs: &[f64]) -> &str {
-        self.outputs_to_output(self.internal_run(inputs))
+    pub fn run(&self, inputs: &[f64]) -> (&str, &[f64]) {
+        let hidden_layer_outputs: Vec<f64> = self
+            .hidden_layers
+            .iter()
+            .fold(inputs.to_vec(), |inputs, layer| {
+                layer.iter().map(|neuron| neuron.apply(&inputs)).collect()
+            });
+        todo!()
     }
 }
