@@ -55,8 +55,12 @@ impl Network {
             .iter()
             .map(|neuron| neuron.apply(&hidden_layer_outputs));
 
-        let max = outputs.max_by(|x, y| x.total_cmp(y)).unwrap();
-        let index = outputs.position(|i| i == max).unwrap();
+        let max = outputs
+            .max_by(|x, y| x.total_cmp(y))
+            .expect("failed to find max output");
+        let index = outputs
+            .position(|i| i == max)
+            .expect("failed to find index of max output");
 
         (&self.output_names[index], outputs.collect())
     }
