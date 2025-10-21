@@ -1,7 +1,7 @@
 use crate::{neuron::Neuron, series::Series};
 use rayon::prelude::*;
 
-pub type Layer = Vec<Neuron>;
+pub type Layer = Box<[Neuron]>;
 
 #[derive(Debug, Clone)]
 pub struct Network {
