@@ -60,7 +60,6 @@ impl Network {
             .iter()
             .max_by(|x, y| x.total_cmp(y))
             .expect("failed to find max output");
-        println!("{:?} {:?}", max, outputs);
         let index = outputs
             .iter()
             .position(|x| x == max)
