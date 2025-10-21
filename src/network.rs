@@ -50,18 +50,22 @@ impl Network {
                 layer.iter().map(|neuron| neuron.apply(&inputs)).collect()
             });
 
-        let outputs = &mut self
+        let outputs: Vec<f64> = self
             .output_layer
             .iter()
-            .map(|neuron| neuron.apply(&hidden_layer_outputs));
+            .map(|neuron| neuron.apply(&hidden_layer_outputs))
+            .collect();
 
         let max = outputs
+            .iter()
             .max_by(|x, y| x.total_cmp(y))
             .expect("failed to find max output");
+        println!("{:?} {:?}", max, outputs);
         let index = outputs
-            .position(|i| i == max)
+            .iter()
+            .position(|x| x == max)
             .expect("failed to find index of max output");
 
-        (&self.output_names[index], outputs.collect())
+        (&self.output_names[index], outputs)
     }
 }
