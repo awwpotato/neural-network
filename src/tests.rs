@@ -11,10 +11,10 @@ pub fn test_xor() {
 
     let mut network = Network::new(2, 1, 4, 2, &["0", "1"]);
 
-    network.train(&training_data);
+    network.train(&training_data, 1.0);
 
-    assert_eq!(network.run(&[0.0, 0.0]).0, "0");
-    assert_eq!(network.run(&[1.0, 0.0]).0, "1");
-    assert_eq!(network.run(&[0.0, 1.0]).0, "1");
-    assert_eq!(network.run(&[1.0, 1.0]).0, "0");
+    assert_eq!(network.run(&[0.0, 0.0]), "0");
+    assert_eq!(network.run(&[1.0, 0.0]), "1");
+    assert_eq!(network.run(&[0.0, 1.0]), "1");
+    assert_eq!(network.run(&[1.0, 1.0]), "0");
 }
