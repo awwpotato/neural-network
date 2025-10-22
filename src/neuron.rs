@@ -3,8 +3,8 @@ use rand::Rng;
 #[derive(Debug, Clone)]
 pub struct Neuron {
     pub name: Option<String>,
-    bias: f64,
-    weights: Box<[f64]>,
+    pub bias: f64,
+    pub weights: Box<[f64]>,
 }
 
 impl Neuron {
