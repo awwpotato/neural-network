@@ -70,7 +70,6 @@ impl Network {
                 .iter()
                 .enumerate()
                 .fold(inputs.to_vec(), |inputs, (i, layer)| {
-                    hidden_layer_output_tracking[i] = Vec::new();
                     layer
                         .iter()
                         .enumerate()
