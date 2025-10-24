@@ -40,29 +40,40 @@ impl Network {
     }
 
     fn train_on_example(&mut self, series: &Series, learning_rating: f64) {
-        let (output_name, outputs) = self.run_with_info(&series.data);
-        let _ = self
+        let (output_name, outputs, process_outputs) = self.run_with_info(&series.data);
+
+        let output_layer_error_signals = self
             .output_layer
             .iter_mut()
             .zip(outputs.iter())
             .map(|(neuron, result)| {
                 let correct_res = (*neuron.name.as_ref().unwrap() == series.answer) as u8;
                 let answer_err_signal = (correct_res as f64 - result) * result * (1.0 - result);
-                neuron.weights = neuron
-                    .weights
-                    .iter()
-                    .map(|old_weight| old_weight + answer_err_signal)
-                    .collect();
 
+                neuron.update_weights(
+                    &answer_err_signal,
+                    process_outputs[process_outputs.len() - 1],
+                    learning_rate,
+                );
+
+                answer_err_signal
+            })
+            .collect();
+
+        let _ = self.hidden_layers.iter_mut().fold(
+            output_layer_error_signals,
+            |error_signals, layer| {
+                let _ = layer.iter_mut().map(|neuron| {});
                 todo!()
-            });
+            },
+        );
     }
 
     pub fn run(&self, inputs: &[f64]) -> &str {
         self.run_with_info(inputs).0
     }
 
-    fn run_with_info(&self, inputs: &[f64]) -> (&str, Vec<f64>) {
+    fn run_with_info(&self, inputs: &[f64]) -> (&str, Vec<f64>, Vec<Vec<f64>>) {
         let mut hidden_layer_output_tracking: Vec<Vec<f64>> = Vec::new();
 
         let hidden_layer_outputs: Vec<f64> =
@@ -96,6 +107,10 @@ impl Network {
             .position(|x| x == max)
             .expect("failed to find index of max output");
 
-        (&self.output_layer[index].name.as_ref().unwrap(), outputs)
+        (
+            &self.output_layer[index].name.as_ref().unwrap(),
+            outputs,
+            hidden_layer_output_tracking,
+        )
     }
 }

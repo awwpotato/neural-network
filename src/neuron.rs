@@ -36,4 +36,13 @@ impl Neuron {
             .sum::<f64>()
             + self.bias
     }
+
+    pub fn update_weights(&mut self, err_signal: &f64, input_values: &[f64], learning_rate: &f64) {
+        self.weights = self
+            .weights
+            .iter()
+            .zip(input_values.iter())
+            .map(|(weight, input)| weight + err_signal * input * learning_rate)
+            .collect();
+    }
 }
