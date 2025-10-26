@@ -39,13 +39,13 @@ impl Network {
         });
     }
 
-    fn train_on_example(&mut self, series: &Series, learning_rating: f64) {
+    fn train_on_example(&mut self, series: &Series, learning_rate: f64) {
         let (output_name, outputs, process_outputs) = self.run_with_info(&series.data);
 
-        let output_layer_error_signals = self
+        let output_layer_error_signals: Vec<f64> = self
             .output_layer
             .iter_mut()
-            .zip(outputs.iter())
+            .zip(outputs)
             .map(|(neuron, result)| {
                 let correct_res = (*neuron.name.as_ref().unwrap() == series.answer) as u8;
                 let answer_err_signal = (correct_res as f64 - result) * result * (1.0 - result);
@@ -53,7 +53,7 @@ impl Network {
                 neuron.update_weights(
                     &answer_err_signal,
                     &process_outputs[process_outputs.len() - 1],
-                    learning_rate,
+                    &learning_rate,
                 );
 
                 answer_err_signal
