@@ -52,7 +52,7 @@ impl Network {
 
                 neuron.update_weights(
                     &answer_err_signal,
-                    process_outputs[process_outputs.len() - 1],
+                    &process_outputs[process_outputs.len() - 1],
                     learning_rate,
                 );
 
