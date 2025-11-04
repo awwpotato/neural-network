@@ -5,6 +5,9 @@ pub struct Neuron {
     pub name: Option<String>,
     pub bias: f64,
     pub weights: Box<[f64]>,
+    pub err_signal: Option<f64>,
+    pub correct_answer: Option<f64>,
+    pub temp_output: Option<f64>,
 }
 
 impl Neuron {
@@ -15,6 +18,9 @@ impl Neuron {
             weights: (0..inputs)
                 .map(|_| rand::rng().random_range(-0.5..0.5))
                 .collect(),
+            err_signal: None,
+            correct_answer: None,
+            temp_output: None,
         }
     }
 
@@ -25,24 +31,36 @@ impl Neuron {
             weights: (0..inputs)
                 .map(|_| rand::rng().random_range(-0.5..0.5))
                 .collect(),
+            err_signal: None,
+            correct_answer: None,
+            temp_output: None,
         }
     }
 
-    pub fn apply(&self, inputs: &[f64]) -> f64 {
-        inputs
+    pub fn apply(&mut self, inputs: &[f64]) -> f64 {
+        let answer = inputs
             .iter()
             .zip(self.weights.iter())
             .map(|(input, weight)| input * weight)
             .sum::<f64>()
-            + self.bias
+            + self.bias;
+
+        self.temp_output = Some(answer);
+
+        answer
     }
 
-    pub fn update_weights(&mut self, err_signal: &f64, input_values: &[f64], learning_rate: &f64) {
+    pub fn update_weights(&mut self, input_values: &[f64], learning_rate: &f64) {
+        self.bias = self.bias
+            + learning_rate
+                * self
+                    .err_signal
+                    .expect("err_signal must be set to update weights");
         self.weights = self
             .weights
             .iter()
             .zip(input_values.iter())
-            .map(|(weight, input)| weight + err_signal * input * learning_rate)
+            .map(|(weight, input)| weight + self.err_signal.unwrap() * input * learning_rate)
             .collect();
     }
 }

@@ -40,19 +40,22 @@ impl Network {
     }
 
     fn train_on_example(&mut self, series: &Series, learning_rate: f64) {
-        let (output_name, outputs, process_outputs) = self.run_with_info(&series.data);
+        let (output_name, outputs) = self.run_with_info(&series.data);
 
         let output_layer_error_signals: Vec<f64> = self
             .output_layer
             .iter_mut()
             .zip(outputs)
             .map(|(neuron, result)| {
-                let correct_res = (*neuron.name.as_ref().unwrap() == series.answer) as u8;
-                let answer_err_signal = (correct_res as f64 - result) * result * (1.0 - result);
+                neuron.correct_answer =
+                    Some(((*neuron.name.as_ref().unwrap() == series.answer) as u8).into());
+                neuron.err_signal = Some((correct_res as f64 - result) * result * (1.0 - result));
 
                 neuron.update_weights(
-                    &answer_err_signal,
-                    &process_outputs[process_outputs.len() - 1],
+                    &self.hidden_layers[self.hidden_layers.len() - 1]
+                        .iter()
+                        .map(|n| n.temp_output.unwrap())
+                        .collect::<Vec<f64>>(),
                     &learning_rate,
                 );
 
@@ -69,32 +72,25 @@ impl Network {
         );
     }
 
-    pub fn run(&self, inputs: &[f64]) -> &str {
+    pub fn run(&mut self, inputs: &[f64]) -> &str {
         self.run_with_info(inputs).0
     }
 
-    fn run_with_info(&self, inputs: &[f64]) -> (&str, Vec<f64>, Vec<Vec<f64>>) {
-        let mut hidden_layer_output_tracking: Vec<Vec<f64>> = Vec::new();
-
-        let hidden_layer_outputs: Vec<f64> =
-            self.hidden_layers
-                .iter()
-                .enumerate()
-                .fold(inputs.to_vec(), |inputs, (i, layer)| {
-                    layer
-                        .iter()
-                        .enumerate()
-                        .map(|(j, neuron)| {
-                            let output = neuron.apply(&inputs);
-                            hidden_layer_output_tracking[i][j] = output;
-                            output
-                        })
-                        .collect()
-                });
+    fn run_with_info(&mut self, inputs: &[f64]) -> (&str, Vec<f64>) {
+        let hidden_layer_outputs: Vec<f64> = self.hidden_layers.iter_mut().enumerate().fold(
+            inputs.to_vec(),
+            |inputs, (i, layer)| {
+                layer
+                    .iter_mut()
+                    .enumerate()
+                    .map(|(j, neuron)| neuron.apply(&inputs))
+                    .collect()
+            },
+        );
 
         let outputs: Vec<f64> = self
             .output_layer
-            .iter()
+            .iter_mut()
             .map(|neuron| neuron.apply(&hidden_layer_outputs))
             .collect();
 
@@ -107,10 +103,6 @@ impl Network {
             .position(|x| x == max)
             .expect("failed to find index of max output");
 
-        (
-            &self.output_layer[index].name.as_ref().unwrap(),
-            outputs,
-            hidden_layer_output_tracking,
-        )
+        (&self.output_layer[index].name.as_ref().unwrap(), outputs)
     }
 }
