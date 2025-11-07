@@ -52,9 +52,8 @@ impl Network {
             .map(|(neuron, result)| {
                 neuron.correct_answer =
                     Some(((*neuron.name.as_ref().unwrap() == series.answer) as u8).into());
-                neuron.err_signal = Some(
-                    (neuron.correct_answer.unwrap() - result) * result * (1.0 - result),
-                );
+                neuron.err_signal =
+                    Some((neuron.correct_answer.unwrap() - result) * result * (1.0 - result));
 
                 neuron.update_weights(
                     &self.hidden_layers[self.hidden_layers.len() - 1]
@@ -143,8 +142,6 @@ impl Network {
                 .iter()
                 .enumerate()
                 .map(|(i, neuron)| {
-                    
-
                     temp_hidden_layer_err_signal
                         .iter()
                         .zip(self.hidden_layers[1].iter())
