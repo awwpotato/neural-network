@@ -45,7 +45,7 @@ impl Network {
         let (output_name, outputs) = self.run_with_info(&series.data);
         self.cached_inputs = Some(series.data.clone());
 
-        let mut output_layer_err_signals: Vec<f64> = self
+        let output_layer_err_signals: Vec<f64> = self
             .output_layer
             .iter_mut()
             .zip(outputs)
@@ -53,7 +53,7 @@ impl Network {
                 neuron.correct_answer =
                     Some(((*neuron.name.as_ref().unwrap() == series.answer) as u8).into());
                 neuron.err_signal = Some(
-                    (neuron.correct_answer.unwrap() as f64 - result) * result * (1.0 - result),
+                    (neuron.correct_answer.unwrap() - result) * result * (1.0 - result),
                 );
 
                 neuron.update_weights(
@@ -143,15 +143,15 @@ impl Network {
                 .iter()
                 .enumerate()
                 .map(|(i, neuron)| {
-                    let err_signal = temp_hidden_layer_err_signal
+                    
+
+                    temp_hidden_layer_err_signal
                         .iter()
                         .zip(self.hidden_layers[1].iter())
                         .map(|(err_signal, n)| err_signal * n.weights[i])
                         .sum::<f64>()
                         * neuron.temp_output.unwrap()
-                        * (1.0 - neuron.temp_output.unwrap());
-
-                    err_signal
+                        * (1.0 - neuron.temp_output.unwrap())
                 })
                 .collect();
 
@@ -160,7 +160,7 @@ impl Network {
                 .zip(temp)
                 .for_each(|(neuron, err_signal)| {
                     neuron.err_signal = Some(err_signal);
-                    neuron.update_weights(&self.cached_inputs.as_ref().unwrap(), &learning_rate);
+                    neuron.update_weights(self.cached_inputs.as_ref().unwrap(), &learning_rate);
                 });
         }
     }
@@ -196,6 +196,6 @@ impl Network {
             .position(|x| x == max)
             .expect("failed to find index of max output");
 
-        (&self.output_layer[index].name.as_ref().unwrap(), outputs)
+        (self.output_layer[index].name.as_ref().unwrap(), outputs)
     }
 }

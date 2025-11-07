@@ -51,8 +51,7 @@ impl Neuron {
     }
 
     pub fn update_weights(&mut self, input_values: &[f64], learning_rate: &f64) {
-        self.bias = self.bias
-            + learning_rate
+        self.bias += learning_rate
                 * self
                     .err_signal
                     .expect("err_signal must be set to update weights");
