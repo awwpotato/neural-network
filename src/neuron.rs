@@ -38,6 +38,8 @@ impl Neuron {
     }
 
     pub fn apply(&mut self, inputs: &[f64]) -> f64 {
+        println!("neuron weights: {:?}, bias: {:?}", self.weights, self.bias);
+
         let answer = inputs
             .iter()
             .zip(self.weights.iter())
@@ -52,9 +54,9 @@ impl Neuron {
 
     pub fn update_weights(&mut self, input_values: &[f64], learning_rate: &f64) {
         self.bias += learning_rate
-                * self
-                    .err_signal
-                    .expect("err_signal must be set to update weights");
+            * self
+                .err_signal
+                .expect("err_signal must be set to update weights");
         self.weights = self
             .weights
             .iter()

@@ -84,6 +84,8 @@ impl Network {
             })
             .collect();
 
+        println!("temp err signal {:?}", temp_err_signal);
+
         // let mut temp_hidden_layer_err_signal: Vec<f64> = {
         //     let temp_data: Vec<(f64, Vec<f64>)> = self.hidden_layers[self.hidden_layers.len() - 1]
         //         .iter()
@@ -118,29 +120,31 @@ impl Network {
         //         .collect()
         // };
 
-        for i in (1..(self.hidden_layers.len() - 1)).rev() {
-            let temp: Vec<(f64, Vec<f64>)> = self.hidden_layers[i]
+        for layer_index in (1..(self.hidden_layers.len() - 1)).rev() {
+            let temp: Vec<(f64, Vec<f64>)> = self.hidden_layers[layer_index]
                 .iter()
                 .enumerate()
-                .map(|(j, neuron)| {
+                .map(|(neuron_index, neuron)| {
                     let err_signal = temp_err_signal
                         .iter()
-                        .zip(self.hidden_layers[i + 1].iter())
-                        .map(|(err_signal, n)| err_signal * n.weights[j])
+                        .zip(self.hidden_layers[layer_index + 1].iter())
+                        .map(|(err_signal, n)| err_signal * n.weights[neuron_index])
                         .sum::<f64>()
                         * neuron.temp_output.unwrap()
                         * (1.0 - neuron.temp_output.unwrap());
 
+                    println!("err_signal: {:?}", err_signal);
+
                     (
                         err_signal,
-                        self.hidden_layers[i - 1]
+                        self.hidden_layers[layer_index - 1]
                             .iter()
                             .map(|n| n.temp_output.unwrap())
                             .collect::<Vec<f64>>(),
                     )
                 })
                 .collect();
-            temp_err_signal = self.hidden_layers[i]
+            temp_err_signal = self.hidden_layers[layer_index]
                 .iter_mut()
                 .zip(temp)
                 .map(|(neuron, (err_signal, input_values))| {
@@ -157,7 +161,7 @@ impl Network {
             let temp: Vec<f64> = self.hidden_layers[0]
                 .iter()
                 .enumerate()
-                .map(|(i, neuron)| {
+                .map(|(neuron_index, neuron)| {
                     temp_err_signal
                         .iter()
                         .zip(if self.hidden_layers.len() > 1 {
@@ -165,7 +169,7 @@ impl Network {
                         } else {
                             self.output_layer.iter()
                         })
-                        .map(|(err_signal, n)| err_signal * n.weights[i])
+                        .map(|(err_signal, n)| err_signal * n.weights[neuron_index])
                         .sum::<f64>()
                         * neuron.temp_output.unwrap()
                         * (1.0 - neuron.temp_output.unwrap())
@@ -203,7 +207,8 @@ impl Network {
             .map(|neuron| neuron.apply(&hidden_layer_outputs))
             .collect();
 
-        println!("run outputs: {:?}", outputs);
+        assert!(outputs.iter().all(|x| !x.is_nan()));
+
         let max = outputs
             .iter()
             .max_by(|x, y| x.total_cmp(y))
