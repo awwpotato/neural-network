@@ -1,3 +1,5 @@
+use std::backtrace;
+
 use crate::{neuron::Neuron, series::Series};
 use rayon::prelude::*;
 
@@ -36,12 +38,19 @@ impl Network {
     }
 
     pub fn train(&mut self, data: &[Series], learning_rating: f64, target_err_percent: f64) {
+        let mut epoch_no = 0;
         loop {
             data.iter().for_each(|series| {
                 self.train_on_example(series, learning_rating);
             });
 
-            if self.err_percentage(data) > target_err_percent {
+            epoch_no += 1;
+
+            let err_percent = self.err_percentage(data);
+
+            println!("epoch: {} err_percent: {}", epoch_no, err_percent);
+
+            if err_percent > target_err_percent {
                 break;
             }
         }
@@ -59,7 +68,7 @@ impl Network {
     }
 
     fn train_on_example(&mut self, series: &Series, learning_rate: f64) {
-        let (output_name, outputs) = self.run_with_info(&series.data);
+        let (_output_name, outputs) = self.run_with_info(&series.data);
         self.cached_inputs = Some(series.data.clone());
 
         let mut temp_err_signal: Vec<f64> = self
@@ -84,106 +93,83 @@ impl Network {
             })
             .collect();
 
-        println!("temp err signal {:?}", temp_err_signal);
+        for layer_index in (1..(self.hidden_layers.len() - 1)).rev() {
+            temp_err_signal = Self::back_propogate(
+                self.hidden_layers[layer_index - 1].clone(),
+                &temp_err_signal,
+                &mut self.hidden_layers[layer_index].clone(),
+                &self.hidden_layers[layer_index - 1]
+                    .iter()
+                    .map(|n| n.temp_output.unwrap())
+                    .collect::<Vec<f64>>(),
+                &learning_rate,
+            );
+        }
 
-        // let mut temp_hidden_layer_err_signal: Vec<f64> = {
-        //     let temp_data: Vec<(f64, Vec<f64>)> = self.hidden_layers[self.hidden_layers.len() - 1]
+        let _ = Self::back_propogate(
+            if self.hidden_layers.len() > 1 {
+                self.hidden_layers[1].clone()
+            } else {
+                self.output_layer.clone()
+            },
+            &temp_err_signal,
+            &mut self.hidden_layers[0],
+            &self.cached_inputs.as_ref().unwrap(),
+            &learning_rate,
+        );
+        // {
+        //     let temp: Vec<f64> = self.hidden_layers[0]
         //         .iter()
         //         .enumerate()
-        //         .map(|(i, neuron)| {
-        //             let err_signal = output_layer_err_signals
+        //         .map(|(neuron_index, neuron)| {
+        //             temp_err_signal
         //                 .iter()
-        //                 .zip(self.output_layer.iter())
-        //                 .map(|(err_signal, neuron)| err_signal * neuron.weights[i])
+        //                 .zip()
+        //                 .map(|(err_signal, n)| err_signal * n.weights[neuron_index])
         //                 .sum::<f64>()
         //                 * neuron.temp_output.unwrap()
-        //                 * (1.0 - neuron.temp_output.unwrap());
-        //
-        //             let inputs_values = self.hidden_layers[self.hidden_layers.len() - 2]
-        //                 .iter()
-        //                 .map(|n| n.temp_output.unwrap())
-        //                 .collect::<Vec<f64>>();
-        //
-        //             (err_signal, inputs_values)
+        //                 * (1.0 - neuron.temp_output.unwrap())
         //         })
         //         .collect();
         //
-        //     self.hidden_layers[self.hidden_layers.len() - 1]
+        //     self.hidden_layers[0]
         //         .iter_mut()
-        //         .zip(temp_data)
-        //         .map(|(neuron, (err_signal, input_values))| {
+        //         .zip(temp)
+        //         .for_each(|(neuron, err_signal)| {
         //             neuron.err_signal = Some(err_signal);
-        //             neuron.update_weights(&input_values, &learning_rate);
-        //
-        //             err_signal
-        //         })
-        //         .collect()
-        // };
+        //             neuron.update_weights(self.cached_inputs.as_ref().unwrap(), &learning_rate);
+        //         });
+        // }
+    }
 
-        for layer_index in (1..(self.hidden_layers.len() - 1)).rev() {
-            let temp: Vec<(f64, Vec<f64>)> = self.hidden_layers[layer_index]
-                .iter()
-                .enumerate()
-                .map(|(neuron_index, neuron)| {
-                    let err_signal = temp_err_signal
-                        .iter()
-                        .zip(self.hidden_layers[layer_index + 1].iter())
-                        .map(|(err_signal, n)| err_signal * n.weights[neuron_index])
-                        .sum::<f64>()
-                        * neuron.temp_output.unwrap()
-                        * (1.0 - neuron.temp_output.unwrap());
+    fn back_propogate<'a>(
+        prev_layer: Box<[Neuron]>,
+        prev_err_signal: &Vec<f64>,
+        current_layer: &mut [Neuron],
+        inputs: &[f64],
+        learning_rate: &'a f64,
+    ) -> Vec<f64> {
+        current_layer
+            .iter_mut()
+            .enumerate()
+            .map(|(neuron_index, neuron)| {
+                let err_signal = prev_err_signal
+                    .iter()
+                    .zip(prev_layer.clone().into_iter())
+                    .map(|(err_signal, n)| err_signal * n.weights[neuron_index])
+                    .sum::<f64>()
+                    * neuron.temp_output.unwrap()
+                    * (1.0 - neuron.temp_output.unwrap());
 
-                    println!("err_signal: {:?}", err_signal);
+                (err_signal, neuron)
+            })
+            .map(|(err_signal, neuron)| {
+                neuron.err_signal = Some(err_signal);
+                neuron.update_weights(inputs, &learning_rate);
 
-                    (
-                        err_signal,
-                        self.hidden_layers[layer_index - 1]
-                            .iter()
-                            .map(|n| n.temp_output.unwrap())
-                            .collect::<Vec<f64>>(),
-                    )
-                })
-                .collect();
-            temp_err_signal = self.hidden_layers[layer_index]
-                .iter_mut()
-                .zip(temp)
-                .map(|(neuron, (err_signal, input_values))| {
-                    neuron.err_signal = Some(err_signal);
-
-                    neuron.update_weights(&input_values, &learning_rate);
-
-                    err_signal
-                })
-                .collect();
-        }
-
-        {
-            let temp: Vec<f64> = self.hidden_layers[0]
-                .iter()
-                .enumerate()
-                .map(|(neuron_index, neuron)| {
-                    temp_err_signal
-                        .iter()
-                        .zip(if self.hidden_layers.len() > 1 {
-                            self.hidden_layers[1].iter()
-                        } else {
-                            self.output_layer.iter()
-                        })
-                        .map(|(err_signal, n)| err_signal * n.weights[neuron_index])
-                        .sum::<f64>()
-                        * neuron.temp_output.unwrap()
-                        * (1.0 - neuron.temp_output.unwrap())
-                })
-                .collect();
-
-            self.hidden_layers[0]
-                .iter_mut()
-                .zip(temp)
-                .for_each(|(neuron, err_signal)| {
-                    neuron.err_signal = Some(err_signal);
-                    neuron.update_weights(self.cached_inputs.as_ref().unwrap(), &learning_rate);
-                });
-        }
+                err_signal
+            })
+            .collect()
     }
 
     pub fn run(&mut self, inputs: &[f64]) -> &str {

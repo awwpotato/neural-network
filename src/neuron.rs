@@ -38,7 +38,7 @@ impl Neuron {
     }
 
     pub fn apply(&mut self, inputs: &[f64]) -> f64 {
-        println!("neuron weights: {:?}, bias: {:?}", self.weights, self.bias);
+        // println!("neuron weights: {:?}, bias: {:?}", self.weights, self.bias);
 
         let answer = inputs
             .iter()
@@ -49,7 +49,7 @@ impl Neuron {
 
         self.temp_output = Some(answer);
 
-        answer
+        1.0 / (1.0 + (-answer).exp())
     }
 
     pub fn update_weights(&mut self, input_values: &[f64], learning_rate: &f64) {
