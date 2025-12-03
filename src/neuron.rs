@@ -14,9 +14,9 @@ impl Neuron {
     pub fn new(inputs: usize) -> Self {
         Self {
             name: None,
-            bias: rand::rng().random_range(-0.5..0.5),
+            bias: rand::rng().random_range(-0.05..0.05),
             weights: (0..inputs)
-                .map(|_| rand::rng().random_range(-0.5..0.5))
+                .map(|_| rand::rng().random_range(-0.05..0.05))
                 .collect(),
             err_signal: None,
             correct_answer: None,
@@ -27,9 +27,9 @@ impl Neuron {
     pub fn new_with_name(inputs: usize, name: impl ToString) -> Self {
         Self {
             name: Some(name.to_string()),
-            bias: rand::rng().random_range(-0.5..0.5),
+            bias: rand::rng().random_range(-0.05..0.05),
             weights: (0..inputs)
-                .map(|_| rand::rng().random_range(-0.5..0.5))
+                .map(|_| rand::rng().random_range(-0.05..0.05))
                 .collect(),
             err_signal: None,
             correct_answer: None,
@@ -47,9 +47,9 @@ impl Neuron {
             .sum::<f64>()
             + self.bias;
 
-        self.temp_output = Some(answer);
+        self.temp_output = Some(1.0 / (1.0 + (-answer).exp()));
 
-        1.0 / (1.0 + (-answer).exp())
+        self.temp_output.unwrap()
     }
 
     pub fn update_weights(&mut self, input_values: &[f64], learning_rate: &f64) {
