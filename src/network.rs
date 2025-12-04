@@ -142,10 +142,13 @@ impl Network {
             });
     }
 
+    /// return the name of the output the neural network rated highest
     pub fn run(&mut self, inputs: &[f64]) -> &str {
         self.run_with_info(inputs).0
     }
 
+    /// return the name of the output the neural network rated highest and
+    /// all of the output's ratings
     fn run_with_info(&mut self, inputs: &[f64]) -> (&str, Vec<f64>) {
         let hidden_layer_outputs: Vec<f64> =
             self.hidden_layers
