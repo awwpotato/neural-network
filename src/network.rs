@@ -22,7 +22,7 @@ impl Network {
         Self {
             inputs,
             output_layer: (0..output_neurons)
-                .map(|i| Neuron::new_with_name(hidden_layer_width, output_names[i]))
+                .map(|i| Neuron::new_with_name(hidden_layer_width, Some(output_names[i])))
                 .collect(),
             hidden_layers: (0..num_hidden_layers)
                 .map(|_| {

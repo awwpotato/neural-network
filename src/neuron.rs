@@ -12,21 +12,12 @@ pub struct Neuron {
 
 impl Neuron {
     pub fn new(inputs: usize) -> Self {
-        Self {
-            name: None,
-            bias: rand::rng().random_range(-0.05..0.05),
-            weights: (0..inputs)
-                .map(|_| rand::rng().random_range(-0.05..0.05))
-                .collect(),
-            err_signal: None,
-            correct_answer: None,
-            temp_output: None,
-        }
+        Self::new_with_name(inputs, None::<&str>)
     }
 
-    pub fn new_with_name(inputs: usize, name: impl ToString) -> Self {
+    pub fn new_with_name(inputs: usize, name: Option<impl ToString>) -> Self {
         Self {
-            name: Some(name.to_string()),
+            name: name.map(|s| s.to_string()),
             bias: rand::rng().random_range(-0.05..0.05),
             weights: (0..inputs)
                 .map(|_| rand::rng().random_range(-0.05..0.05))
