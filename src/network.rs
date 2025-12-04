@@ -1,7 +1,4 @@
-use std::backtrace;
-
 use crate::{neuron::Neuron, series::Series};
-use rayon::prelude::*;
 
 pub type Layer = Box<[Neuron]>;
 
@@ -115,7 +112,7 @@ impl Network {
                 self.output_layer.clone()
             },
             &mut self.hidden_layers[0],
-            &self.cached_inputs.as_ref().unwrap(),
+            self.cached_inputs.as_ref().unwrap(),
             &learning_rate,
         );
     }
@@ -139,7 +136,7 @@ impl Network {
                         * (1.0 - neuron.temp_output.unwrap()),
                 );
 
-                neuron.update_weights(inputs, &learning_rate);
+                neuron.update_weights(inputs, learning_rate);
             });
     }
 
