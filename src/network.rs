@@ -1,4 +1,5 @@
 use crate::{neuron::Neuron, series::Series};
+use std::ops::Div;
 
 pub type Layer = Box<[Neuron]>;
 
@@ -62,14 +63,13 @@ impl Network {
     }
 
     pub fn err_percentage(&mut self, data: &[Series]) -> f64 {
-        let mut signals = Vec::new();
-
-        for series in data {
-            let (output_name, _outputs) = self.run_with_info(&series.data);
-            signals.push(((output_name == series.answer) as u8) as f64);
-        }
-
-        signals.iter().sum::<f64>() / signals.len() as f64
+        data.iter()
+            .map(|series| {
+                let (output_name, _outputs) = self.run_with_info(&series.data);
+                u8::from(output_name == series.answer) as f64
+            })
+            .sum::<f64>()
+            .div(data.len() as f64)
     }
 
     fn train_on_example(&mut self, series: &Series, learning_rate: f64) {
