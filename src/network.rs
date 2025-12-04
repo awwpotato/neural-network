@@ -5,7 +5,6 @@ pub type Layer = Box<[Neuron]>;
 
 #[derive(Debug, Clone)]
 pub struct Network {
-    inputs: usize,
     output_layer: Layer,
     hidden_layers: Box<[Layer]>,
     cached_inputs: Option<Box<[f64]>>,
@@ -20,7 +19,6 @@ impl Network {
         output_names: &[impl ToString + Copy],
     ) -> Self {
         Self {
-            inputs,
             output_layer: (0..output_neurons)
                 .map(|i| Neuron::new_with_name(hidden_layer_width, Some(output_names[i])))
                 .collect(),
