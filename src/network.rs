@@ -62,14 +62,15 @@ impl Network {
         }
     }
 
-    pub fn err_percentage(&mut self, data: &[Series]) -> f64 {
-        data.iter()
+    pub fn err_percentage(&mut self, inputs: &[Series]) -> f64 {
+        inputs
+            .iter()
             .map(|series| {
                 let (output_name, _outputs) = self.run_with_info(&series.data);
                 u8::from(output_name == series.answer) as f64
             })
             .sum::<f64>()
-            .div(data.len() as f64)
+            .div(inputs.len() as f64)
     }
 
     fn train_on_example(&mut self, series: &Series, learning_rate: f64) {
