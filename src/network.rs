@@ -75,6 +75,7 @@ impl Network {
         let _ = self.run_with_info(&series.data);
         self.cached_inputs = Some(series.data.clone());
 
+        // handle output layer
         self.output_layer.iter_mut().for_each(|neuron| {
             let result = neuron.temp_output.unwrap();
 
@@ -92,6 +93,7 @@ impl Network {
             );
         });
 
+        // handle hidden_layers, but leave last hidden layer for special case
         for layer_index in (1..self.hidden_layers.len()).rev() {
             Self::back_propogate(
                 self.hidden_layers[layer_index - 1].clone(),
@@ -104,6 +106,7 @@ impl Network {
             );
         }
 
+        // special case for last hidden layer, because there isn't a layer below
         Self::back_propogate(
             if self.hidden_layers.len() > 1 {
                 self.hidden_layers[1].clone()
