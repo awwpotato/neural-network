@@ -64,7 +64,7 @@ impl Network {
         inputs
             .iter()
             .map(|series| {
-                let (output_name, _outputs) = self.run_with_info(&series.data);
+                let (output_name, _outputs) = self.run_with_info(&series.inputs);
                 u8::from(output_name == series.answer) as f64
             })
             .sum::<f64>()
@@ -72,8 +72,8 @@ impl Network {
     }
 
     fn train_on_example(&mut self, series: &Series, learning_rate: f64) {
-        let _ = self.run_with_info(&series.data);
-        self.cached_inputs = Some(series.data.clone());
+        let _ = self.run_with_info(&series.inputs);
+        self.cached_inputs = Some(series.inputs.clone());
 
         // handle output layer
         self.output_layer.iter_mut().for_each(|neuron| {
