@@ -48,6 +48,7 @@ impl Neuron {
             * self
                 .err_signal
                 .expect("err_signal must be set to update weights");
+        assert_eq!(self.weights.len(), input_values.len());
         self.weights = self
             .weights
             .iter()
